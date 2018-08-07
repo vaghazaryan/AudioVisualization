@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+<input type="file" id="file">
+<audio id="audio" controls></audio>
+
+<script src="node_modules/three/build/three.min.js"></script>
+<script src="node_modules/p5/lib/p5.min.js"></script>
+<script src="node_modules/p5/lib/addons/p5.sound.min.js"></script>
+<script src="node_modules/simplex-noise/simplex-noise.js"></script>
+<script src="src/js/libs/dat.gui.min.js"></script>
+<script>
+    let ww = window.innerWidth, wh = window.innerHeight;
+    let input, audioPlayer, output, fft, spectrum, analyser, dataArray, bufferLength;
+    let geometry, material, ball, spotLight, spotLight2, ambientLight, options, lights, gui;
+
+    var noise = new SimplexNoise();
+    input = document.querySelector('#file');
+    audioPlayer = document.querySelector('#audio');
+    output = document.querySelector('.output');
+
+    options = {
+        camera: {
+            fov: 70,
+        },
+        spotLights: [
+            {
+                color: 0x0e45cd,
+                intensity: 0.9,
+                shadow: true,
+                position: [150, 80, 200] // x, y, z
+            },
+            {
+                color: 0x21ca7b,
+                intensity: 0.9,
+                shadow: true,
+                position: [-50, 40, 20] // x, y, z
+            }
+        ],
+        ambientLight: {
+            color: 0x580493
+        }
+    };
+
+    initVisualization();
+
+
+    function load(file) {
+        new p5.SoundFile(file, initAudio);
+    }
+
+    function initPanel() {
+        let ambLight = gui.addFolder('Ambient Light');
+        ambLight.addColor(options.ambientLight, 'color')
+                .onChange(e => ambientLight.color.set(new THREE.Color(e)));
+
+        options.spotLights.forEach((light, i) => {
+            let lgt = gui.addFolder(`Spot Light ${i + 1}`);
+            lgt.add(options.spotLights[i], 'intensity', 0, 1)
+               .onChange((e) => {
+                   lights[i].intensity = e;
+                   update()
+            });
+            lgt.addColor(options.spotLights[i], 'color')
+               .onChange(e => {
+                   lights[i].color.set(new THREE.Color(e));
+                   update()
+               });
+
+        })
+    }
+
+    function initLights(lightOpts, centarlFigure, callback) {
+        lightOpts.forEach((opts,i) => {
+            let light = new THREE.SpotLight(opts.color, opts.intensity);
+            light.position.set(...opts.position);
+            light.lookAt(centarlFigure);
+            light.castShadow = opts.shadow;
+            lights.push(light);
+            callback(lights[i])
+        })
+    }
+
+
+    function initVisualization() {
+        gui = new dat.GUI();
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(options.camera.fov, ww / wh, 0.1, 1000);
+        camera.position.set(0, 0, 100);
+        camera.lookAt(scene.position);
+
+        geometry = new THREE.IcosahedronGeometry(20, 4);
+        material = new THREE.MeshLambertMaterial({
+            color: 0xffffff, //0xff00ee
+            wireframe: true
+        });
+
+        ambientLight = new THREE.AmbientLight(options.ambientLight.color, 0.4);
+
+        ball = new THREE.Mesh(geometry, material);
+        ball.position.set(0, 0, 0);
+
+        lights = [];
+        initLights(options.spotLights, ball, light => scene.add(light));
+
+        scene.add(ambientLight);
+        scene.add(camera);
+        scene.add(ball);
+
+        renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+        renderer.setClearColor(0x080808, 1);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        initPanel();
+        renderer.render(scene, camera);
+    }
+
+    function initAudio(audio) {
+        fft = new p5.FFT();
+        fft.setInput(audio);
+        audio.play();
+        animate()
+    }
+
+    input.addEventListener('change', (e) => {
+        load(e.target.files[0]);
+    });
+
+
+    function animate() {
+        var spectrum = fft.analyze();
+        var lowLvls = fft.getEnergy("bass")
+        var allLvls = fft.getEnergy("treble");
+        var highMid = fft.getEnergy("highMid");
+        var centroid = fft.getCentroid();
+
+
+        ball.rotation.y += 0.002;
+        camera.fov = 70 - (lowLvls * 0.1);
+        camera.updateProjectionMatrix();
+        makeRoughBall(ball, lowLvls * 0.05, (centroid + highMid) * 0.0001);
+        requestAnimationFrame(animate);
+        update();
+    }
+
+    function update() {
+        renderer.render(scene, camera);
+    }
+
+    function makeRoughBall(mesh, bassFr, treFr, tzz) {
+        mesh.geometry.vertices.forEach(function (vertex, i) {
+            let x, y, z, offset, time, distance;
+
+            offset = mesh.geometry.parameters.radius;
+            time = Date.now();
+            vertex.normalize();
+
+            x = vertex.x + time * 0.00025;
+            y = vertex.y + time * 0.00035;
+            z = vertex.z + time * 0.00045;
+            distance = (offset) + noise.noise3D(x, y, z) * 4 * treFr;
+
+            vertex.multiplyScalar(distance);
+        });
+        mesh.geometry.verticesNeedUpdate = true;
+        mesh.geometry.normalsNeedUpdate = true;
+        mesh.geometry.computeVertexNormals();
+        mesh.geometry.computeFaceNormals();
+    }
+
+</script>
+</body>
+</html>
