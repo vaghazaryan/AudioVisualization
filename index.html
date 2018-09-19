@@ -6,23 +6,52 @@
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
-<input type="file" id="file">
-<audio id="audio" controls></audio>
+<div class="wrapper" id="drop-area">
+    <div class="btn-group">
+        <div class="upload-btn">
+            Upload Audio file
+            <input type="file" name="file" id="upload"/>
+        </div>
+        <div class="text-center text-white">
+            <h1>Or</h1>
+            <span>Drag And Drop file</span>
+        </div>
+    </div>
+</div>
 
 <script src="node_modules/three/build/three.min.js"></script>
 <script src="node_modules/p5/lib/p5.min.js"></script>
 <script src="node_modules/p5/lib/addons/p5.sound.min.js"></script>
 <script src="node_modules/simplex-noise/simplex-noise.js"></script>
 <script src="src/js/libs/dat.gui.min.js"></script>
+<script src="src/js/libs/alertify.min.js"></script>
 <script>
     let ww = window.innerWidth, wh = window.innerHeight;
-    let input, audioPlayer, output, fft, spectrum, analyser, dataArray, bufferLength;
-    let geometry, material, ball, spotLight, spotLight2, ambientLight, options, lights, gui;
+    let input, audioPlayer, output, fft, spectrum, analyser, dataArray, bufferLength, fileList = [];
+    let geometry, material, ball, ballGroup, ambientLight, options, lights, gui, delta;
+
+    let clock = new THREE.Clock();
+    let smokeTexture, smokeMaterial, smokeGeo, smokeParticles;
+
+
 
     var noise = new SimplexNoise();
     input = document.querySelector('#file');
     audioPlayer = document.querySelector('#audio');
     output = document.querySelector('.output');
+
+    let dropArea = document.getElementById('drop-area');
+    let uploadButton = document.querySelector('.upload-btn');
+    let fileInput = document.querySelector('#upload');
+    let supportedFormats = [
+        'mp3',
+        'wav',
+        'ogg',
+        'm4a',
+        'aac'
+    ];
+
+    // Old Colors: spotLights: [0x0e45cd, 0x21ca7b], ambientLight: 0x580493
 
     options = {
         camera: {
@@ -30,8 +59,8 @@
         },
         spotLights: [
             {
-                color: 0x0e45cd,
-                intensity: 0.9,
+                color: 0x555555,
+                intensity: 0.6,
                 shadow: true,
                 position: [150, 80, 200] // x, y, z
             },
@@ -39,19 +68,64 @@
                 color: 0x21ca7b,
                 intensity: 0.9,
                 shadow: true,
-                position: [-50, 40, 20] // x, y, z
+                position: [-50, 80, 20] // x, y, z
             }
         ],
         ambientLight: {
-            color: 0x580493
+            color: 0x000000,
+            intensity: 0.6,
         }
     };
 
-    initVisualization();
+    uploadButton.addEventListener('click', () => {
+        fileInput.click();
+    });
 
 
-    function load(file) {
-        new p5.SoundFile(file, initAudio);
+    let dragEventTypes = ['dragenter','dragleave','dragover','drop'];
+
+    dragEventTypes.forEach(type => {
+        dropArea.addEventListener(type, handlerFunction, false);
+    });
+
+    function handlerFunction(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        changeDropAreaClass(e.type);
+        if(e.type === 'drop') load(e.dataTransfer.files);
+    }
+
+    function changeDropAreaClass(type){
+        if(type === 'dragenter' || type === 'dragover'){
+            dropArea.classList.add('dragging')
+        }else{
+            dropArea.classList.remove('dragging');
+        }
+    }
+
+    function getFileFormat(file) {
+        return file.name.split('.').pop();
+    }
+
+    function isSupportedFile(ext){
+        return supportedFormats.includes(ext);
+    }
+
+    function load(files) {
+        for(let i = 0; i < files.length; i++){
+            let file = files[i];
+            let ext = getFileFormat(file);
+            if(isSupportedFile(ext)){
+                dropArea.classList.add('hide');
+                fileList.push(file)
+            }else{
+                alertify.error('Not Supported type \''+ext+'\'');
+            }
+        }
+        if(!fileList.length) return;
+
+        initVisualization();
+        new p5.SoundFile(fileList[0], initAudio);
     }
 
     function initPanel() {
@@ -90,6 +164,7 @@
     function initVisualization() {
         gui = new dat.GUI();
         scene = new THREE.Scene();
+        ballGroup = new THREE.Group;
         camera = new THREE.PerspectiveCamera(options.camera.fov, ww / wh, 0.1, 1000);
         camera.position.set(0, 0, 100);
         camera.lookAt(scene.position);
@@ -97,20 +172,21 @@
         geometry = new THREE.IcosahedronGeometry(20, 4);
         material = new THREE.MeshLambertMaterial({
             color: 0xffffff, //0xff00ee
-            wireframe: true
+            wireframe: true,
         });
 
-        ambientLight = new THREE.AmbientLight(options.ambientLight.color, 0.4);
+        ambientLight = new THREE.AmbientLight(options.ambientLight.color, options.ambientLight.intensity);
 
         ball = new THREE.Mesh(geometry, material);
         ball.position.set(0, 0, 0);
 
         lights = [];
-        initLights(options.spotLights, ball, light => scene.add(light));
+        initLights(options.spotLights, ball, light => ballGroup.add(light));
+        ballGroup.add(ball);
 
+        scene.add(ballGroup);
         scene.add(ambientLight);
         scene.add(camera);
-        scene.add(ball);
 
         renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
         renderer.setClearColor(0x080808, 1);
@@ -120,6 +196,13 @@
         renderer.render(scene, camera);
     }
 
+    function evolveSmoke() {
+        var sp = smokeParticles.length;
+        while(sp--) {
+            smokeParticles[sp].rotation.z += (delta * 0.09);
+        }
+    }
+
     function initAudio(audio) {
         fft = new p5.FFT();
         fft.setInput(audio);
@@ -127,21 +210,32 @@
         animate()
     }
 
-    input.addEventListener('change', (e) => {
-        load(e.target.files[0]);
+    upload.addEventListener('change', (e) => {
+        load(e.target.files);
     });
 
+    function bass(level) {
+        console.log(ballGroup);
+        if(level <= 230) return;
+        ball.position.x = Math.cos(Date.now() * level) * 0.3;
+        ball.position.y = Math.cos(Date.now() * level) * 0.3;
+        ball.position.z = Math.cos(Date.now() * level) * 0.3;
+    }
 
     function animate() {
+
         var spectrum = fft.analyze();
         var lowLvls = fft.getEnergy("bass")
         var allLvls = fft.getEnergy("treble");
         var highMid = fft.getEnergy("highMid");
         var centroid = fft.getCentroid();
 
+        delta = clock.getDelta() * (lowLvls * 0.01);
+        bass(lowLvls);
 
-        ball.rotation.y += 0.002;
-        camera.fov = 70 - (lowLvls * 0.1);
+
+        ballGroup.rotation.z += 0.005;
+        ballGroup.position.z = (lowLvls * 0.18);
         camera.updateProjectionMatrix();
         makeRoughBall(ball, lowLvls * 0.05, (centroid + highMid) * 0.0001);
         requestAnimationFrame(animate);
@@ -152,8 +246,8 @@
         renderer.render(scene, camera);
     }
 
-    function makeRoughBall(mesh, bassFr, treFr, tzz) {
-        mesh.geometry.vertices.forEach(function (vertex, i) {
+    function makeRoughBall(mesh, bassFr, treFr) {
+        mesh.geometry.vertices.forEach(function (vertex) {
             let x, y, z, offset, time, distance;
 
             offset = mesh.geometry.parameters.radius;
