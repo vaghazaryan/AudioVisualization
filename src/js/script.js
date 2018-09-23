@@ -1,12 +1,10 @@
-let ww = window.innerWidth, wh = window.innerHeight;
-let input, audioPlayer, audio, output, fft, fileList = [];
+let input, player, audio, output, fft, fileList = [];
 let options, gui, visualization;
 
 let clock = new THREE.Clock();
 var noise = new SimplexNoise();
 
 input = document.querySelector('#file');
-audioPlayer = document.querySelector('#audio');
 output = document.querySelector('.output');
 
 
@@ -86,6 +84,7 @@ let opts = {
 };
 
 visualization = new SoundVisualisation(opts).init();
+player = new Player('.player');
 
 window.addEventListener( 'resize', () => {
     visualization.updateSceneScreenSize()
@@ -140,10 +139,11 @@ function load(files) {
     new p5.SoundFile(fileList[0], initAudio);
 }
 
-function initAudio(a) {
+function initAudio(audio) {
     fft = new p5.FFT();
-    fft.setInput(a);
-    audio = a;
+    fft.setInput(audio);
+    fft.analyze();
+    player.audioInput = audio;
     visualization.audioInput = fft;
 }
 

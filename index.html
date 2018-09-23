@@ -19,15 +19,20 @@
     </div>
 </div>
 
-<div class="player">
-    <div><button class="control stop"><span class="icon i-stop"></span></button></div>
-    <div><button class="control action"><span class="icon i-play"></span></button></button></div>
-    <div>
-        <input type="range" min="1" max="100" value="0" class="slider" id="trace">
-        <span class="current-time">00:00</span> / <span class="end-time">00:00</span>
+<div class="player-wrapper">
+    <div class="player">
+        <div><button class="control" id="stop"><span class="icon i-stop"></span></button></div>
+        <div><button class="control" id="playPause"><span class="icon i-play"></span></button></button></div>
+        <div class="traceGroup">
+            <input type="range" min="1" max="100" value="0" class="slider" id="trace">
+            <div class="timer"><span class="current-time">00:00</span> / <span class="end-time">00:00</span></div>
+        </div>
+        <div class="volumeGroup">
+            <button class="control" id="muteSound"><span class="icon i-volume"></span></button>
+            <input type="range" min="0" max="1" step="0.01" value="1" class="slider" id="volume">
+        </div>
+        <div></div>
     </div>
-    <div></div>
-    <div></div>
 </div>
 
 <script src="node_modules/three/build/three.min.js"></script>
@@ -37,7 +42,7 @@
 <script src="src/js/libs/dat.gui.min.js"></script>
 <script src="src/js/libs/alertify.min.js"></script>
 <script src="src/js/visualization.js"></script>
-<script src="src/js/script.js"></script>
 <script src="src/js/player.js"></script>
+<script src="src/js/script.js"></script>
 </body>
 </html>
