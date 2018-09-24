@@ -88,7 +88,7 @@ body{
 .player {
     padding: 10px;
     display: grid;
-    grid-template-columns: 40px 40px auto 110px 40px;
+    grid-template-columns: 40px 115px auto 110px 40px;
     align-items: center;
     background-color: #ffffff14;
     border-radius: 30px;
@@ -110,6 +110,32 @@ body{
     border-radius: 15px;
     border: 1px solid #ffffff30;
     cursor: pointer;
+    outline: none;
+}
+.control:disabled {
+    cursor: inherit;
+}
+.control:disabled .icon {
+    opacity: 0.2;
+}
+.control-group{
+    display: inline-flex;
+    border-radius: 30px;
+    border: 1px solid #373737;
+    padding: 8px 12px;
+}
+.control-group .control {
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    padding-right: 10px;
+    margin-right: 10px;
+    border-right: 1px solid #424242;
+}
+.control-group .control:last-child{
+    padding-right: 0px;
+    margin-right: 0px;
+    border-right: 0px;
 }
 .icon {
     width: 12px;
@@ -132,6 +158,14 @@ body{
 }
 .icon.i-mute{
     background-image: url("../img/mute.svg");
+}
+
+.icon.i-prev{
+    background-image: url("../img/prev.svg");
+}
+
+.icon.i-next{
+    background-image: url("../img/next.svg");
 }
 
 .timer {

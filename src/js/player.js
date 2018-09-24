@@ -11,10 +11,12 @@ class Player {
         this._lastVolumePoint = this.volume;
         this._isTraceTouched = false;
         this._mouseTimeout = null;
+        this._playlist = [];
     }
 
     set audioInput(src) {
-        this.audioSource = src;
+        Array.isArray(src) ? this._playlist = src : this._playlist.push(src);
+        this.audioSource = this._playlist[0];
         this.init();
     }
 
@@ -55,6 +57,8 @@ class Player {
         return {
             stop:         this.target.querySelector('#stop'),
             playPause:    this.target.querySelector('#playPause'),
+            next:         this.target.querySelector('#next'),
+            prev:         this.target.querySelector('#prev'),
             trace:        this.target.querySelector('#trace'),
             muteSound:    this.target.querySelector('#muteSound'),
             volume:       this.target.querySelector('#volume'),
@@ -100,6 +104,12 @@ class Player {
         this.controls.muteSound.firstElementChild.classList.remove(this.volume ? 'i-mute' : 'i-volume')
     }
 
+    setControlsActivity() {
+        let currentIndex = this._playlist.indexOf(this.audioSource);
+        this.controls.prev.disabled = !currentIndex;
+        this.controls.next.disabled = !this._playlist[currentIndex + 1];
+    }
+
     initEventHandlers() {
         this.controls.playPause.addEventListener('click', e => {
             this.audioSource.isPlaying() ? this.pause() : this.play();
@@ -142,11 +152,12 @@ class Player {
         this.updateVolumeTrace();
         this.initEventHandlers();
         this.controls.playPause.click();
+        this.setControlsActivity();
         this.show();
+        console.log(this.audioSource);
 
         this.setTimestamp();
         this.traceEndTime = this.audioSource.duration();
 
     }
-
 }
