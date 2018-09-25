@@ -7,12 +7,14 @@ class SoundVisualisation {
         this.clock          = new THREE.Clock();
         this.scene          = new THREE.Scene();
         this.group          = new THREE.Group();
+        this.ligthgroup     = new THREE.Group();
         this.noise          = new SimplexNoise();
         this.camera         = this._makeCamera();
         this.ball           = this._makeBall();
         this.ambientLight   = this._makeAmbientLight();
         this.renderer       = this._makerenderer();
         this.animationFrame = null;
+        this.fft            = null;
         this.audioSource    = Object.assign({});
 
     }
@@ -22,7 +24,8 @@ class SoundVisualisation {
     }
 
     set audioInput(source) {
-        this.audioSource = source;
+        this.audioSource = new p5.FFT();
+        this.audioSource.setInput(source);
         this.animate();
     }
 
@@ -63,23 +66,28 @@ SoundVisualisation.prototype.makePointLights = function() {
     let lights = this.options.spotLights;
     lights.forEach(sl => {
         let light = new THREE.SpotLight(sl.color, sl.intensity);
+        light.name = sl.name;
         light.position.set(...sl.position);
         light.lookAt(this.ball);
         light.castShadow = sl.shadow;
-        this.group.add(light);
+        this.ligthgroup.add(light);
     })
 };
 
 SoundVisualisation.prototype.animate = function() {
+    let _self = this;
+    window.cancelAnimationFrame(_self.animationFrame);
     let lowLevels, allLevels, highMidLevels, centroid;
     this.audioSource.analyze();
-    lowLevels = fft.getEnergy("bass")
-    allLevels = fft.getEnergy("treble");
-    highMidLevels = fft.getEnergy("highMid");
-    centroid = fft.getCentroid();
+    lowLevels = this.audioSource.getEnergy("bass")
+    allLevels = this.audioSource.getEnergy("treble");
+    highMidLevels = this.audioSource.getEnergy("highMid");
+    centroid = this.audioSource.getCentroid();
 
     this.group.rotation.z += 0.005;
-    this.group.position.z = (lowLevels * 0.18);
+    this.group.position.z = this.ligthgroup.position.z = (lowLevels * 0.18);
+    this.ligthgroup.getObjectByName('dark').intensity = 0.6 + (lowLevels * 0.0015);
+
     this.makebeats(lowLevels);
 
     this.camera.updateProjectionMatrix();
@@ -132,6 +140,7 @@ SoundVisualisation.prototype.init = function() {
     this.group.add(this.ball);
     this.scene.add(this.group);
     this.scene.add(this.ambientLight);
+    this.scene.add(this.ligthgroup);
     this.scene.add(this.camera);
     this.makePointLights();
     return this;

@@ -6,18 +6,14 @@ class Player {
 
     constructor(DOMSelector){
         this.audioSource = null;
+        this.fft = null;
         this.DOMSelector = DOMSelector || '.player';
         this._volume = 0.8;
         this._lastVolumePoint = this.volume;
         this._isTraceTouched = false;
         this._mouseTimeout = null;
+        this._listeners = [];
         this._playlist = [];
-    }
-
-    set audioInput(src) {
-        Array.isArray(src) ? this._playlist = src : this._playlist.push(src);
-        this.audioSource = this._playlist[0];
-        this.init();
     }
 
     set volume(vol) {
@@ -31,7 +27,6 @@ class Player {
     }
 
     updateVolumeTrace() {
-        console.log(this.volume)
         this.controls.volume.value = this.volume;
     }
 
@@ -93,6 +88,28 @@ class Player {
         this.audioSource.stop();
     }
 
+    next(){
+        let currentIndex = this._playlist.indexOf(this.audioSource);
+        if(!this._playlist[currentIndex + 1]) return;
+        this.setTrack(currentIndex + 1);
+        this.setControlsActivity();
+        this.play();
+    }
+
+    prev(){
+        let currentIndex = this._playlist.indexOf(this.audioSource);
+        if(!this._playlist[currentIndex - 1]) return;
+        this.setTrack(currentIndex - 1);
+        this.setControlsActivity();
+        this.play();
+    }
+
+    setTrack(index){
+        if(this.audioSource) this.stop();
+        this.audioSource = this._playlist[index];
+        this.triggerEvent('trackChange');
+    }
+
     setTimestamp() {
         setInterval(() => {
             this.traceTime = this.audioSource.currentTime();
@@ -122,6 +139,8 @@ class Player {
         });
 
         this.controls.stop.addEventListener('click', e => this.stop.apply(this));
+        this.controls.next.addEventListener('click', e => this.next.apply(this));
+        this.controls.prev.addEventListener('click', e => this.prev.apply(this));
         this.controls.trace.addEventListener('change', e => this.audioSource.jump(e.target.value));
 
         "mousedown mousemove keydown".split(" ").forEach(eventName => {
@@ -147,17 +166,36 @@ class Player {
         })
     }
 
-    init(){
+    initPlayer(){
         this.audioSource.setVolume(this.volume);
         this.updateVolumeTrace();
         this.initEventHandlers();
         this.controls.playPause.click();
         this.setControlsActivity();
         this.show();
-        console.log(this.audioSource);
 
         this.setTimestamp();
         this.traceEndTime = this.audioSource.duration();
+    }
 
+    setAudioInput (source){
+        Array.isArray(source) ? this._playlist = this._playlist.concat(source): this._playlist.push(source);
+        this.setTrack(this._playlist.indexOf(Array.isArray(source) ? source[0] : source));
+        this.initPlayer();
+    }
+
+
+    // Events
+
+    onTrackChanges(handler){
+        if(handler && {}.toString.call(handler) === '[object Function]'){
+            this._listeners.push(Object.assign({eventName: 'trackChange', handler: handler}));
+        }
+    }
+
+    triggerEvent(eventName){
+        this._listeners.forEach(e => {
+            if(e.eventName = eventName) e.handler.call(this.audioSource);
+        })
     }
 }
