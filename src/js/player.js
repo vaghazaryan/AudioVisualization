@@ -186,7 +186,6 @@ class Player {
 
 
     // Events
-
     onTrackChanges(handler){
         if(handler && {}.toString.call(handler) === '[object Function]'){
             this._listeners.push(Object.assign({eventName: 'trackChange', handler: handler}));
