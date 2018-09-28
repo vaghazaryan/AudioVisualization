@@ -12,6 +12,7 @@
 
         supportedFormats = ['mp3', 'wav', 'ogg', 'm4a', 'aac'],
         dragEventTypes   = ['dragenter','dragleave','dragover','drop'];
+        colorGradient = ['#845EC2', '#009EFA', '#00D2FC', '#4FFBDF', '#845EC2'];
 
     options = {
         ball: {
@@ -55,6 +56,10 @@
 
     visualization = new SoundVisualisation(options).init();
     player = new Player('.player');
+
+    new ColorMap(colorGradient).animate(function (color) {
+        visualization.ligthgroup.getObjectByName('ligth').color = new THREE.Color(color);
+    }, 20000, true);
 
     global.addEventListener( 'resize', () => {
         visualization.updateSceneScreenSize()

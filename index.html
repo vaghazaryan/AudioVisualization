@@ -22,7 +22,9 @@
     <div class="btn-group">
         <div class="upload-btn">
             Upload Audio file
-            <input type="file" name="file" id="upload"/>
+            <form enctype="multipart/form-data">
+                <input type="file" name="file" id="upload" multiple/>
+            </form>
         </div>
         <div class="text-center text-white">
             <h1>Or</h1>
@@ -59,8 +61,8 @@
 <script src="src/js/libs/dat.gui.min.js"></script>
 <script src="src/js/libs/alertify.min.js"></script>
 <script src="src/js/visualization.js"></script>
-<!--<script src="src/js/vis.js"></script>-->
 <script src="src/js/player.js"></script>
+<script src="src/js/colorMap.js"></script>
 <script src="src/js/script.js"></script>
 </body>
 </html>
