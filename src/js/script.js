@@ -12,7 +12,7 @@
 
         supportedFormats = ['mp3', 'wav', 'ogg', 'm4a', 'aac'],
         dragEventTypes   = ['dragenter','dragleave','dragover','drop'];
-        colorGradient = ['#845EC2', '#009EFA', '#00D2FC', '#4FFBDF', '#845EC2'];
+        colorGradient = ['#845EC2', '#D65DB1', '#FF6F91', '#FF9671', '#FFC75F', '#F9F871', '#00C9A7', '#0081CF', '#845EC2'];
 
     options = {
         ball: {
