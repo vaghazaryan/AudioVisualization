@@ -21,11 +21,100 @@ body{
     justify-content: center;
     align-items: center;
     z-index: 2;
-    background-image: linear-gradient(to right, #051937, #092253, #1b2a6e, #353088, #5433a1);
 }
-.wrapper.highlited {
-    background-image: linear-gradient(to right, #051937, #092253, #1b2a6e, #353088, #5433a1);
+.wrapper-background {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-image: -moz-linear-gradient(45deg, #3f3251 2%, #002025 100%);
+    background-image: -webkit-linear-gradient(45deg, #3f3251 2%, #002025 100%);
+    background-image: linear-gradient(45deg, #3f3251 2%, #002025 100%);
+    opacity: 0.8;
 }
+.loader {
+    opacity: 0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    margin-left: -60px;
+    margin-top: -60px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    display: table;
+    vertical-align: middle;
+    text-align: left;
+    font-size: 0;
+    font-family: monospace;
+}
+.loader.show {
+    opacity: 1;
+}
+.loader-circle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    margin-left: -60px;
+    margin-top: -60px;
+}
+.loader-line-mask {
+    overflow: hidden;
+    -webkit-transform-origin: 60px 60px;
+    -moz-transform-origin: 60px 60px;
+    -ms-transform-origin: 60px 60px;
+    -o-transform-origin: 60px 60px;
+    transform-origin: 60px 60px;
+    -webkit-mask-image: -webkit-linear-gradient(top, #000000, rgba(0, 0, 0, 0));
+    -webkit-animation: rotate 1.2s infinite linear;
+    -moz-animation: rotate 1.2s infinite linear;
+    -o-animation: rotate 1.2s infinite linear;
+    animation: rotate 1.2s infinite linear;
+}
+.percent {
+    font-size: 28px;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    bottom: 0;
+    display: table;
+    margin: auto;
+    vertical-align: middle;
+    color: #fff;
+}
+
+
+#main > *{
+    transition: all ease 0.3s;
+}
+#main.loaded .wrapper{
+    opacity: 0;
+    transform: translateY(-100px);
+}
+
+@-webkit-keyframes rotate{ 0% { -webkit-transform: rotate(0deg);} 100% { -webkit-transform: rotate(360deg);}}
+@-moz-keyframes rotate{ 0% { -moz-transform: rotate(0deg);} 100% { -moz-transform: rotate(360deg);}}
+@-o-keyframes rotate{ 0% { -o-transform: rotate(0deg);} 100% { -o-transform: rotate(360deg);}}
+@keyframes rotate{ 0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);transform: rotate(0deg);} 100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);transform: rotate(360deg);}}
+
+
+.wrapper {
+    opacity: 1;
+}
+.loader-line-mask .loader-line {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
 .upload-btn {
     padding: 15px 30px;
     background: #00c9b7;
@@ -37,10 +126,10 @@ body{
     font-size: 16px;
     box-shadow: 0px 0px 14px 1px rgba(00,00,00,0.2);
 }
-.upload-btn:hover {
-    box-shadow: 0px 0px 1px 0px rgba(00,00,00,0.2);
-    transition: all 0.2s ease;
-}
+/*.upload-btn:hover {*/
+    /*box-shadow: 0px 0px 1px 0px rgba(00,00,00,0.2);*/
+    /*transition: all 0.2s ease;*/
+/*}*/
 #upload {
     position: absolute;
     font-size: 50px;

@@ -78,17 +78,24 @@ SoundVisualisation.prototype.animate = function() {
     let _self = this;
     window.cancelAnimationFrame(_self.animationFrame);
     let lowLevels, allLevels, highMidLevels, centroid;
-    this.audioSource.analyze();
-    lowLevels = this.audioSource.getEnergy("bass")
-    allLevels = this.audioSource.getEnergy("treble");
-    highMidLevels = this.audioSource.getEnergy("highMid");
-    centroid = this.audioSource.getCentroid();
+    if(this.audioSource && this.audioSource.analyze){
+        this.audioSource.analyze();
+        lowLevels = this.audioSource.getEnergy("bass")
+        allLevels = this.audioSource.getEnergy("treble");
+        highMidLevels = this.audioSource.getEnergy("highMid");
+        centroid = this.audioSource.getCentroid();
+
+        this.group.position.z = this.ligthgroup.position.z = (lowLevels * 0.18);
+        this.ligthgroup.getObjectByName('dark').intensity = 0.8 - (0.5 * Math.cos(highMidLevels * 0.015));
+        this.makebeats(lowLevels);
+    }else{
+        lowLevels = Date.now() * 0.000000001
+        allLevels = Date.now() * 0.000000001
+        highMidLevels = Date.now() * 0.000000001
+        centroid = Date.now() * 0.000000001
+    }
 
     this.group.rotation.z += 0.005;
-    this.group.position.z = this.ligthgroup.position.z = (lowLevels * 0.18);
-    this.ligthgroup.getObjectByName('dark').intensity = 0.8 - (0.5 * Math.cos(highMidLevels * 0.015));
-
-    this.makebeats(lowLevels);
 
     this.camera.updateProjectionMatrix();
     this.makeRoughBall(lowLevels * 0.05, (centroid + highMidLevels) * 0.0001);
@@ -130,6 +137,30 @@ SoundVisualisation.prototype.updateSceneScreenSize = function() {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     this.render();
 };
+
+SoundVisualisation.prototype.moveCamera = function(z) {
+    let diff = z - this.camera.position.z;
+    let interval = setInterval(() => {
+        if(Math.round(this.camera.position.z) === z) clearInterval(interval);
+        this.camera.position.z += 0.8 * (Math.cos(diff / Math.abs(diff)));
+    });
+}
+
+SoundVisualisation.prototype.easing = {
+    linear: function (t) { return t },
+    easeInQuad: function (t) { return t*t },
+    easeOutQuad: function (t) { return t*(2-t) },
+    easeInOutQuad: function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t },
+    easeInCubic: function (t) { return t*t*t },
+    easeOutCubic: function (t) { return (--t)*t*t+1 },
+    easeInOutCubic: function (t) { return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+    easeInQuart: function (t) { return t*t*t*t },
+    easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+    easeInOutQuart: function (t) { return t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+    easeInQuint: function (t) { return t*t*t*t*t },
+    easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+    easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
+}
 
 SoundVisualisation.prototype.render = function() {
   this.renderer.render(this.scene, this.camera)

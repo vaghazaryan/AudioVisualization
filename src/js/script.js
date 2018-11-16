@@ -9,6 +9,8 @@
         dropArea = document.getElementById('drop-area'),
         uploadButton = document.querySelector('.upload-btn'),
         fileInput = document.querySelector('#upload'),
+        mainSection = document.querySelector('#main'),
+        loader = document.querySelector('.loader'),
 
         supportedFormats = ['mp3', 'wav', 'ogg', 'm4a', 'aac'],
         dragEventTypes   = ['dragenter','dragleave','dragover','drop'];
@@ -27,7 +29,7 @@
         },
 
         camera: {
-            position: [0,0,100], // x, y, z
+            position: [0,0,60], // x, y, z
             fow: 70,   // Camera frustum vertical field of view.
             near: 0.1, // Camera frustum near plane.
             far: 1000  // Camera frustum far plane
@@ -55,6 +57,7 @@
     };
 
     visualization = new SoundVisualisation(options).init();
+    visualization.animate();
     player = new Player('.player');
 
     new ColorMap(colorGradient).animate(function (color) {
@@ -100,6 +103,12 @@
         return supportedFormats.includes(ext);
     }
 
+    function animateLoading(from, to) {
+        for(let i = from; i <= to; i++){
+            document.querySelector('.percent').innerHTML = i + '%'
+        }
+    }
+
     function load(files) {
         for(let i = 0; i < files.length; i++){
             let file = files[i];
@@ -112,7 +121,36 @@
             }
         }
         if(!fileList.length) return;
+        Loadinganimation()
+    }
+
+    function Loadinganimation() {
+        mainSection.classList.add('loaded');
+    }
+
+    function onAnimationEnd(elem, callback){
+        document.querySelector(elem).addEventListener("transitionend", e => callback(e), true);
+    }
+
+    function percentAnimation(opt) {
+        let percent = Math.round(opt.loaded * 100 / opt.total);
+        let elem = document.getElementsByClassName('percent')[0];
+        let oldPercent = parseInt(elem.innerHTML);
+        console.log(oldPercent , percent);
+        while (oldPercent <= percent) {
+            console.log(oldPercent);
+            elem.innerHTML = `${oldPercent}%`
+            oldPercent++;
+        }
+    }
+
+    onAnimationEnd('.wrapper', (e) => {
+       if(e.propertyName !== 'opacity') return;
+       loader.classList.add('show');
+        visualization.moveCamera(100);
         wrapAudioSource(fileList, (data) => {
+            console.log(data);
+            percentAnimation(data);
             wrappedSource.push(data.source);
         },() => {
             player.onTrackChanges(function (audio) {
@@ -120,7 +158,7 @@
             });
             player.setAudioInput(wrappedSource);
         });
-    }
+    });
 
     function wrapAudioSource(sourceList, next, success) {
         let loaded   = 0;

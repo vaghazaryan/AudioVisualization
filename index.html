@@ -6,32 +6,31 @@
     <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
-<style>
-    html {
-        width: 100%;
-        height: 100%;
-
-        background: #11e8bb; /* Old browsers */
-        background: -moz-linear-gradient(top,  #11e8bb 0%, #8200c9 100%); /* FF3.6-15 */
-        background: -webkit-linear-gradient(top,  #11e8bb 0%,#8200c9 100%); /* Chrome10-25,Safari5.1-6 */
-        background: linear-gradient(to bottom,  #11e8bb 0%,#8200c9 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#11e8bb', endColorstr='#8200c9',GradientType=0 ); /* IE6-9 */
-    }
-</style>
-<div class="wrapper" id="drop-area">
-    <div class="btn-group">
-        <div class="upload-btn">
-            Upload Audio file
-            <form enctype="multipart/form-data">
-                <input type="file" name="file" id="upload" multiple/>
-            </form>
+<section id="main">
+    <div class="wrapper-background"></div>
+    <div class="loader">
+        <div class="loader-circle"></div>
+        <div class="loader-line-mask">
+            <div class="loader-line"></div>
         </div>
-        <div class="text-center text-white">
-            <h1>Or</h1>
-            <span>Drag And Drop file</span>
+        <span class="percent">0%</span>
+    </div>
+    <div class="wrapper" id="drop-area">
+        <div class="btn-group">
+            <div class="upload-btn">
+                Upload Audio file
+                <form enctype="multipart/form-data">
+                    <input type="file" name="file" id="upload" multiple/>
+                </form>
+            </div>
+            <div class="text-center text-white">
+                <h1>Or</h1>
+                <span>Drag And Drop file</span>
+            </div>
         </div>
     </div>
-</div>
+</section>
+
 
 <div class="player-wrapper">
     <div class="player">
