@@ -144,6 +144,10 @@
         }
     }
 
+    function lightWrapper() {
+        document.querySelector('.wrapper-background').style.opacity = 0.4
+    }
+
     onAnimationEnd('.wrapper', (e) => {
        if(e.propertyName !== 'opacity') return;
        loader.classList.add('show');
@@ -153,6 +157,9 @@
             percentAnimation(data);
             wrappedSource.push(data.source);
         },() => {
+            lightWrapper();
+            loader.classList.remove('show');
+            loader.classList.add('hide');
             player.onTrackChanges(function (audio) {
                 visualization.audioInput = audio
             });
