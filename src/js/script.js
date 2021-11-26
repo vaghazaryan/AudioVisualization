@@ -11,6 +11,7 @@
         fileInput = document.querySelector('#upload'),
         mainSection = document.querySelector('#main'),
         loader = document.querySelector('.loader'),
+        wrapper = document.querySelector('.wrapper-background'),
 
         supportedFormats = ['mp3', 'wav', 'ogg', 'm4a', 'aac'],
         dragEventTypes   = ['dragenter','dragleave','dragover','drop'];
@@ -144,26 +145,23 @@
         }
     }
 
-    function lightWrapper() {
-        document.querySelector('.wrapper-background').style.opacity = 0.4
-    }
-
     onAnimationEnd('.wrapper', (e) => {
        if(e.propertyName !== 'opacity') return;
        loader.classList.add('show');
         visualization.moveCamera(100);
         wrapAudioSource(fileList, (data) => {
-            console.log(data);
             percentAnimation(data);
             wrappedSource.push(data.source);
-        },() => {
-            lightWrapper();
-            loader.classList.remove('show');
-            loader.classList.add('hide');
-            player.onTrackChanges(function (audio) {
-                visualization.audioInput = audio
-            });
-            player.setAudioInput(wrappedSource);
+            if(data.loaded === data.total) {
+                loader.classList.remove('show');
+                wrapper.classList.add('loaded');
+                setTimeout(() => {
+                    player.onTrackChanges(function (audio) {
+                        visualization.audioInput = audio
+                    });
+                    player.setAudioInput(wrappedSource);
+                }, 500)
+            }
         });
     });
 
@@ -174,7 +172,6 @@
             new p5.SoundFile(e, c => {
                 loaded ++;
                 next({loaded: loaded, total: totalCnt, source: c});
-                if(totalCnt === loaded) success();
             })
         });
     }

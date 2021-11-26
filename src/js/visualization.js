@@ -80,6 +80,7 @@ SoundVisualisation.prototype.animate = function() {
     let lowLevels, allLevels, highMidLevels, centroid;
     if(this.audioSource && this.audioSource.analyze){
         this.audioSource.analyze();
+        console.log(this.audioSource);
         lowLevels = this.audioSource.getEnergy("bass")
         allLevels = this.audioSource.getEnergy("treble");
         highMidLevels = this.audioSource.getEnergy("highMid");
